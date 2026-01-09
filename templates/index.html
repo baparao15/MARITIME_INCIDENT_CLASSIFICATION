@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maritime Incident Severity Classifier</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1>🌊 Maritime Incident Severity Classifier</h1>
+                <p class="subtitle">AI-Powered Classification System for Maritime Safety</p>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Input Section -->
+            <div class="input-section">
+                <div class="card">
+                    <h2>Enter Incident Description</h2>
+                    <p class="description">Describe the maritime incident to get an automated severity classification</p>
+                    
+                    <form id="prediction-form">
+                        <div class="form-group">
+                            <label for="incident-text">Incident Description</label>
+                            <textarea 
+                                id="incident-text" 
+                                name="incident-text" 
+                                rows="8" 
+                                placeholder="Example: A cargo vessel experienced an engine failure during rough seas. The crew reported smoke from the engine room. Fire suppression systems were activated and the fire was extinguished. One crew member sustained minor burns and received first aid treatment onboard..."
+                                required></textarea>
+                        </div>
+                        
+                        <button type="submit" id="predict-btn" class="btn-primary">
+                            <span class="btn-text">Analyze Severity</span>
+                            <span class="btn-loader" style="display: none;"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Result Section -->
+            <div id="result-section" class="result-section" style="display: none;">
+                <div class="card result-card">
+                    <h2>Classification Result</h2>
+                    <div id="severity-display" class="severity-display"></div>
+                </div>
+            </div>
+
+            <!-- Info Section -->
+            <div class="info-section">
+                <div class="card">
+                    <h2>Severity Levels</h2>
+                    <div class="severity-levels">
+                        {% for level, info in severities.items() %}
+                            {% if level <= 5 %}
+                            <div class="severity-item" style="border-left: 4px solid {{ info.color }}">
+                                <div class="severity-header">
+                                    <span class="severity-icon">{{ info.icon }}</span>
+                                    <span class="severity-name">Level {{ level }}: {{ info.name }}</span>
+                                </div>
+                                <p class="severity-desc">{{ info.description }}</p>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Maritime Incident Severity Classification System &copy; 2024</p>
+        </footer>
+    </div>
+
+    <script>
+        const form = document.getElementById('prediction-form');
+        const resultSection = document.getElementById('result-section');
+        const predictBtn = document.getElementById('predict-btn');
+        const btnText = document.querySelector('.btn-text');
+        const btnLoader = document.querySelector('.btn-loader');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const text = document.getElementById('incident-text').value.trim();
+            
+            if (!text) {
+                alert('Please enter an incident description');
+                return;
+            }
+
+            // Show loading state
+            predictBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'inline-block';
+            resultSection.style.display = 'none';
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResult(data);
+                } else {
+                    alert('Error: ' + (data.error || 'Unknown error occurred'));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                // Reset button state
+                predictBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoader.style.display = 'none';
+            }
+        });
+
+        function displayResult(data) {
+            const severityDisplay = document.getElementById('severity-display');
+            severityDisplay.innerHTML = `
+                <div class="severity-result" style="background: linear-gradient(135deg, ${data.severity_color}15 0%, ${data.severity_color}05 100%); border-left: 6px solid ${data.severity_color};">
+                    <div class="severity-result-header">
+                        <span class="severity-icon-large">${data.severity_icon}</span>
+                        <div>
+                            <h3 class="severity-title">Severity Level ${data.prediction}: ${data.severity_name}</h3>
+                            <p class="severity-subtitle">${data.severity_description}</p>
+                        </div>
+                    </div>
+                </div>`;
+            resultSection.style.display = 'block';
+            resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    </script>
+</body>
+</html>
+
