@@ -62,8 +62,8 @@ MARITIME_INCIDENT_CLASSIFICATION/
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/maritime-incident-classification.git
-cd maritime-incident-classification
+git clone https://github.com/baparao15/MARITIME_INCIDENT_CLASSIFICATION
+cd MARITIME_INCIDENT_CLASSIFICATION
 ```
 
 2. Install required packages:
@@ -169,3 +169,4 @@ This project demonstrates:
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
